@@ -153,8 +153,10 @@ function calculate(source)
 	}
 
 	if (source==TCRField)
-	{
-		TCRMaterialDropdown.options[TCRMaterialDropdown.selectedIndex].text=TCRField.value;
+	{   
+		
+		if(TCRField.value.length==0) { resetTCRMaterialDropdownTexts();}
+		else { TCRMaterialDropdown.options[TCRMaterialDropdown.selectedIndex].text=TCRField.value;}
 	}
 	
 	
@@ -183,7 +185,8 @@ function calculate(source)
 	{
 		Wset  = parseInt(watts2SetField.value);
 		Wact = Wset/(1 + ((tcr / 100000.0) * TempChg));
-		WoutField.value=Wact;
+		if (!Number.isNaN(Wact)) {WoutField.value = Wact;}
+		else {WoutField.value=""};
 	}
 }
  
