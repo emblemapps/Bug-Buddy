@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body 
+{
+  font-family: 'Trebuchet MS', sans-serif;
+}
+
+/* https://www.w3schools.com/css/css3_gradients.asp */
+#grad1 
+{
+ /* height: 200px;*/
+  background-color: #F0FFFF; /* For browsers that do not support gradients */
+  /* background-image: linear-gradient(to bottom right, rgba(230,240,255,1), rgba(255,220,255,1) );*/
+  background-image: linear-gradient(to bottom right, rgba(235,240,255,1), rgba(255,255,200,1) );
+  border-width:3px;
+  border-style:solid;
+  border-color:#287EC7;
+  padding:6px;  /* gap inside main border */
+}
+
+.textInputField
+{
+  background-color: #ccFFFF;
+  color: #000070;
+  font-size: 16px;
+  width: 60px;
+  padding: 0px 0px 0px 0px;  /*top.right,bottom,left only internal space*/
+  margin:  0px 0px 0px 10px;
+}
+
+td
+{
+	font-size: 13px; color:rgb(0,0,50);
+}
+
+.top, .middle, .bottom 
+{    
+      padding: 0px 0px 10px 0px; /*.right,bottom, left: see https://www.w3schools.com/cssref/pr_padding.php  */
+}
+</style>
+
+<link href='https://fonts.googleapis.com/css?family=Courgette' rel='stylesheet'>
+
+</head>
+<body>
+<form id="grad1">
+
+
+<!-- T i t l e -->
+<div class="top">
+<span style="margin:auto; font-family:'Courgette'; display:table;
+ letter-spacing: 1.5px; padding-bottom: 0px; font-size: 17px; color:rgb(80,0,120);">Bug Buddy V1.0</span>
+</div>
+
+<table>
+<tr>
+<td>  <!-- R e q ' d   O / P   W a t t a g e -->
+<label for ="wattsNeeded">Required O/P Wattage</label> 
+</td>
+<td>
+<input type="text" class="textInputField" 									id="wattsNeeded" oninput="calculate(this)" value="85">
+</td>
+
+<tr>
+<td>  <!-- C o i l   T e m p -->
+<label for "tempHot">Coil Temperature</label>
+
+<select id = "tempUnitsSelect" onchange = "calculate(this)" >
+<option selected='selected'> &nbsp°C&nbsp </option>
+<option> &nbsp°F&nbsp </option>
+</select>
+</td>
+
+<td>
+<!-- <input type="text" class="textInputField" style="color:#FF0000; width:100;" id="tempHot"  oninput="calculate(this)" value="160"> -->
+<input type="text" class="textInputField"  id="tempHot"  oninput="calculate(this)" value="190">
+</td>
+
+
+<tr>
+<td>
+<label for "tcr">TCR</label> <!-- T C R -->
+<select id = "TCRMaterial" onchange = "calculate(this)" >
+<option selected='selected'> &nbspSS304&nbsp </option>
+<option> &nbspSS316L&nbsp </option>
+<option> &nbspNichrome NI80&nbsp </option>
+<option> &nbspKanthal A1&nbsp </option>
+</select>
+</td>
+<td>
+<input type="text" class="textInputField" 									id="TCR" oninput="calculate(this)" value="105">
+</td>
+
+<tr>
+<td> <!-- W a t t s   t o   S e t -->
+<label for "watts2Set">Watts to set on mod</label>
+</td>
+<td><input type="text" class="textInputField" 									id="watts2Set" oninput="calculate(this)" value="100">
+</td>
+</table>
+</form>
+
+<!-- ------------------------------------------------------------------------------------ -->
+
+<script>
+const ambientTempC = 20.0;
+
+// Declare "text"s
+WoutField		= document.getElementById("wattsNeeded"); 
+TempHotField 	= document.getElementById("tempHot");
+TCRField 		= document.getElementById("TCR");
+watts2SetField 	= document.getElementById("watts2Set");
+
+// Declare "select"s i.e. dropdowns
+TCRMaterialDropdown = document.getElementById("TCRMaterial");
+tempUnitsSelectDropdown = document.getElementById("tempUnitsSelect");
+
+
+ 
+function calculate(source)
+{
+
+	if(source==tempUnitsSelectDropdown)
+	{
+		let selIndex  =	tempUnitsSelectDropdown.selectedIndex; //0 for C, 1 for F
+		if (selIndex==0)//change from °F to °C
+		{
+			TempHotField.value=DegF2C(TempHotField.value);
+		}
+		else if (selIndex==1) //change from °C to °F
+		{
+			TempHotField.value=DegC2F(TempHotField.value);
+		}
+		return;
+	}
+	
+	else if (source==TCRMaterialDropdown)
+	{
+		resetTCRMaterialDropdownTexts();
+		let selIndex  =	TCRMaterialDropdown.selectedIndex;
+		//0=SS304 1=SS316, 2=Ni80; 3=A1
+		switch(selIndex)
+		{
+			case 0:   TCRField.value= "105"; break;
+			case 1:   TCRField.value= "95"; break;
+			case 2:   TCRField.value= "12"; break;
+			case 3:   TCRField.value= "0";  break
+		}
+		source=WoutField; //to kiddums it into carrying on with calcing as if requird watts out had changed
+	}
+
+	if (source==TCRField)
+	{
+		TCRMaterialDropdown.options[TCRMaterialDropdown.selectedIndex].text=TCRField.value;
+	}
+	
+	
+    else if((source.value.length==0) ||  !onlyDigits(source.value)){watts2SetField.value = ""; return;}
+	
+	let Wset  = parseFloat(watts2SetField.value);
+	let tcr   = parseInt(TCRField.value);
+	let TempHDegC = parseFloat(TempHotField.value);
+	if(tempUnitsSelectDropdown.selectedIndex==1)
+	{
+		TempHDegC=DegF2C(TempHotField.value);
+	}
+	let TempChg = TempHDegC-ambientTempC;
+	let Wact  = parseFloat(WoutField.value);
+	
+	
+	//no else!!
+	if (source==WoutField || source==TCRField || source==TempHotField) //usually we're typing in the Watts out needed field
+	{
+		Wset = (1.0 + ((tcr / 100000.0) * TempChg)) * Wact ; 
+		watts2SetField.value = Wset;
+		if (!Number.isNaN(Wset)) {watts2SetField.value = Wset;}
+		else {watts2SetField.value=""};
+	}
+	else if (source==watts2SetField)
+	{
+		Wset  = parseInt(watts2SetField.value);
+		Wact = Wset/(1 + ((tcr / 100000.0) * TempChg));
+		WoutField.value=Wact;
+	}
+}
+ 
+/**
+Watts set =  (1+(TCR *∆t)) Wout
+Watts out =   Watts set / (1+(TCR *∆t))
+*/
+
+function onlyDigits(s) 
+{ 
+	s=s.trim();
+	for (let i = s.length - 1; i >= 0; i--) {
+    const d = s.charCodeAt(i);
+    if ((d!=46) && (d < 48 || d > 57)) {return false;} //46 is dec point
+  }
+  return true;
+}
+
+function DegC2F(degC)
+{ 
+	return (degC * 1.8) +32.0;
+}
+
+function DegF2C(degF) //°C = (°F - 32) ÷ (9/5)
+{
+    return (degF-32) / (9/5.0);
+}
+
+/**
+re-labels texts of the TCR materials dropdowns with 
+SS304, SS316L, Nichrome NI80 and Kanthal A1 
+*/
+function resetTCRMaterialDropdownTexts()
+{
+		TCRMaterialDropdown.options[0].text="SS304";
+		TCRMaterialDropdown.options[1].text="SS316L";
+		TCRMaterialDropdown.options[2].text="Nichrome NI80";
+		TCRMaterialDropdown.options[3].text="Kanthal A1";	
+}
+
+
+//WoutField.oninput = function()
+ //{
+//	if(!onlyDigits(WoutField.value)){WoutField.value = "-"; return;}
+//	calculate();
+ //}
+</script>
+</body>
+</html>
