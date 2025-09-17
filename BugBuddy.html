@@ -7,6 +7,10 @@ body
 {
   font-family: 'Trebuchet MS', sans-serif;
 }
+label
+{
+	color: #000050;
+}
 
 /* https://www.w3schools.com/css/css3_gradients.asp */
 #grad1 
@@ -20,7 +24,6 @@ body
   border-color:#287EC7;
   padding:6px;  /* gap inside main border */
 }
-
 .textInputField
 {
   background-color: #ccFFFF;
@@ -38,7 +41,17 @@ td
 
 .top, .middle, .bottom 
 {    
-      padding: 0px 0px 10px 0px; /*.right,bottom, left: see https://www.w3schools.com/cssref/pr_padding.php  */
+      padding: 0px 0px 0px 0px; /*.right,bottom, left: see https://www.w3schools.com/cssref/pr_padding.php  */
+}
+
+.smalltext
+{
+	/* background-color: #ccFFFF; */
+	color: #800000;
+	font-size: 10px;
+	font-style: italic;
+	padding: 0px 0px 7px 0px;  /*top.right,bottom,left only internal space*/
+	margin:  0px 0px 0px 10px;
 }
 </style>
 
@@ -48,11 +61,15 @@ td
 <body>
 <form id="grad1">
 
-
 <!-- T i t l e -->
 <div class="top">
 <span style="margin:auto; font-family:'Courgette'; display:table;
  letter-spacing: 1.5px; padding-bottom: 0px; font-size: 17px; color:rgb(80,0,120);">Bug Buddy V1.0</span>
+</div>
+
+<div class="smalltext">
+<span style="margin:auto; display:table;
+ letter-spacing: 0.8px; ">Calculates Watts offset for mods affected by the Stainless Steel firmware bug</span>
 </div>
 
 <table>
@@ -79,7 +96,6 @@ td
 <input type="text" class="textInputField"  id="tempHot"  oninput="calculate(this)" value="190">
 </td>
 
-
 <tr>
 <td>
 <label for "tcr">TCR</label> <!-- T C R -->
@@ -104,7 +120,6 @@ td
 </form>
 
 <!-- ------------------------------------------------------------------------------------ -->
-
 <script>
 const ambientTempC = 20.0;
 
@@ -118,7 +133,10 @@ watts2SetField 	= document.getElementById("watts2Set");
 TCRMaterialDropdown = document.getElementById("TCRMaterial");
 tempUnitsSelectDropdown = document.getElementById("tempUnitsSelect");
 
-initialise();
+window.onload = function() 
+{
+  initialise();
+};
 
 /** 	C A L C U L A T E ( )    */ 
 function calculate(source)
@@ -136,7 +154,6 @@ function calculate(source)
 		}
 		return;  //only changing from C to F and vice versa
 	}
-	
 	else if (source==TCRMaterialDropdown)
 	{
 		resetTCRMaterialDropdownTexts();
@@ -149,9 +166,8 @@ function calculate(source)
 			case 2:   TCRField.value= "12";  tcrVal=12;  break;
 			case 3:   TCRField.value= "0";   tcrVal=0;	 break;
 		}
-		//source=WoutField; //to kiddums it into carrying on with calcing as if requird watts out had changed
+		source=WoutField; //to kiddums it into carrying on with calcing as if requird watts out had changed
 	}
-
 	if (source==TCRField)
 	{   
 		if(TCRField.value.length==0) { resetTCRMaterialDropdownTexts();}
@@ -161,7 +177,6 @@ function calculate(source)
 		}
 		tcrVal = parseInt(TCRField.value);
 	}
-	
 	else if (source==WoutField) 	
 	{
 		if (!onlyDigits(WoutField.value))
@@ -180,21 +195,24 @@ function calculate(source)
 	}
 	else if (source==watts2SetField) 
 	{
-		watts2SetVal  = parseFloat(watts2SetField.value);
+	
+		if (!onlyDigits(watts2SetField.value))
+		{
+			watts2SetField.value = watts2SetField.value.substring(0, watts2SetField.value.length - 1);
+		}
+		watts2SetVal  = watts2SetField.value;
 	}
 	//by here, all values should be entered into the "class attributes"
 	
 	if (source==WoutField || source==TCRField || source==TempHotField) //usually we're typing in the Watts out needed field
 	{
-		watts2SetVal = (1.0 + ((tcrVal / 100000.0) * (tempHotValC-ambientTempC))) * wOutVal ; 
+		watts2SetVal = "" + (1.0 + ((tcrVal / 100000.0) * (tempHotValC-ambientTempC))) * wOutVal ; 
 	}
 	 else if (source==watts2SetField)
 	{
 		//wOutVal = watts2SetVal/(1 + ((tcrVal / 100000.0) * (tempHotValC-ambientTempC)));
 		wOutVal = "" + (watts2SetVal/(1 + ((tcrVal / 100000.0) * (tempHotValC-ambientTempC))));
 	}
-	
-	
 	displayAll();
 }
 
@@ -203,7 +221,6 @@ function calculate(source)
 Watts set =  (1+(TCR *∆t)) Wout
 Watts out =   Watts set / (1+(TCR *∆t))
 */
-
 function onlyDigits(s) 
 { 
 	s=s.trim();
@@ -238,20 +255,23 @@ function resetTCRMaterialDropdownTexts()
 
 function initialise()
 {
-wOutVal 	 = 20.0;
-tempHotValC  = 190.0;
-tcrVal		 = 105;
-watts2SetVal = 0;  //don't care;   //done
+wOutVal 	 = "20.0";
+tempHotValC  = "190.0";
+tcrVal		 = "105";
+watts2SetVal = "0";  //don't care;   //done
 TCRMaterialDropdown.selectedIndex = 0;
 tempUnitsSelectDropdown.selectedIndex=0;
+
+displayAll();
 calculate(WoutField);
-//displayAll();
 }
 
 function displayAll()
 {
 	if(!Number.isNaN(parseFloat(wOutVal)) && (onlyDigits(wOutVal)))	 	
-	{WoutField.value=wOutVal;} 
+	{
+		WoutField.value= wOutVal;
+	} 
 	else {WoutField.value="";}
 	
 	if(!Number.isNaN(tempHotValC))
@@ -268,11 +288,13 @@ function displayAll()
 	//TCRField.value = tcrVal;
 	if(!Number.isNaN(watts2SetVal)) {watts2SetField.value = watts2SetVal;} else {watts2SetField.value="";}
 	
+	if(!Number.isNaN(parseFloat(watts2SetVal)) && (onlyDigits(watts2SetVal)))	 	
+		{
+			watts2SetField.value= watts2SetVal;
+		} 
+		else {watts2SetField.value="";}
+	}
 	
-}
-
-
-
 //WoutField.oninput = function()
  //{
 //	if(!onlyDigits(WoutField.value)){WoutField.value = "-"; return;}
